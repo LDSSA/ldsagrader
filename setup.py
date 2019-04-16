@@ -14,6 +14,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'Click',
     'nbgrader',
+    'requests',
 ]
 
 setup_requirements = ['pytest-runner', ]

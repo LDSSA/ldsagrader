@@ -84,15 +84,3 @@ dist: clean ## builds source and wheel package
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
 
-build: dist
-	$(eval TAG := $(shell ./git-version.sh ${LU_PATH}))
-	rm -rf .lu
-	cp -r "${LU_PATH}" .lu
-	docker build -t $(IMAGE_NAME) -f docker/lu/Dockerfile .
-	rm -rf .lu
-
-#validate: build
-run:
-	# docker run --rm $(IMAGE_NAME) /opt/run.sh
-	docker run --rm $(IMAGE_NAME) /opt/run.sh
-
