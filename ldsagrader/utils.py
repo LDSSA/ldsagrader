@@ -7,23 +7,18 @@ from nbgrader import utils
 from traitlets.config import Config
 
 
-def find_notebook(codename):
-    spec, lu = codename.split('/')
-    for spec_path in os.listdir():
-        if spec_path.startswith(spec):
-            break
+def find_path(codename):
+    for root, dirs, files in os.walk(".", topdown=False):
+        for dir_ in dirs:
+            if dir_.startswith(codename):
+                return os.path.join(root, dir_)
 
-    else:
-        raise RuntimeError("Specialization directory not found")
+    raise RuntimeError("Learning Unit directory not found")
 
-    for lu_path in os.listdir(spec_path):
-        if lu_path.startswith(lu):
-            break
 
-    else:
-        raise RuntimeError("Learning Unit directory not found")
-
-    return os.path.join(spec_path, lu_path, "Exercise notebook.ipynb")
+def find_exercise_nb(codename):
+    path = find_path(codename)
+    return os.path.join(path, "Exercise notebook.ipynb")
 
 
 def calculate_checksum(nb):
