@@ -182,9 +182,9 @@ def academy_grade(codename, username, timeout):
         notebook_path = utils.find_exercise_nb(codename)
         notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
-        print("Fetching checksums...")
+        print("Fetching checksum...")
         response = requests.get(
-            urljoin(config['checksum_url'], codename) + '/',
+            config['checksum_url'].format(codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
         )
         response.raise_for_status()
@@ -194,7 +194,8 @@ def academy_grade(codename, username, timeout):
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
             requests.post(
-                config['grading_url'],
+                config['grading_url'].format(username=username,
+                                             codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
                     'unit': codename,
@@ -210,7 +211,8 @@ def academy_grade(codename, username, timeout):
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
             requests.post(
-                config['grading_url'],
+                config['grading_url'].format(username=username,
+                                             codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
                     'unit': codename,
@@ -230,7 +232,8 @@ def academy_grade(codename, username, timeout):
         nbformat.write(notebook, fp)
         fp.seek(0)
         response = requests.post(
-            config['grading_url'],
+            config['grading_url'].format(username=username,
+                                         codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             data={
                 'unit': codename,
@@ -251,7 +254,8 @@ def academy_grade(codename, username, timeout):
 
     except Exception:
         response = requests.post(
-            config['grading_url'],
+            config['grading_url'].format(username=username,
+                                         codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             json={
                 'unit': codename,
@@ -277,7 +281,7 @@ def academy_update(codename):
     print("Posting checksums...")
     checksum = utils.calculate_checksum(notebook)
     response = requests.patch(
-        urljoin(config['checksum_url'], codename) + '/',
+        config['checksum_url'].format(codename=codename),
         headers={'Authorization': f"Token {config['token']}"},
         json={
             'checksum': checksum,
