@@ -197,8 +197,6 @@ def academy_grade(codename, username, timeout):
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
-                    'unit': codename,
-                    'username': username,
                     'score': None,
                     'status': 'out-of-date'},
             )
@@ -214,8 +212,6 @@ def academy_grade(codename, username, timeout):
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
-                    'unit': codename,
-                    'username': username,
                     'score': 0,
                     'status': 'out-of-date',
                 },
@@ -235,8 +231,6 @@ def academy_grade(codename, username, timeout):
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             data={
-                'unit': codename,
-                'username': username,
                 'score': total_score,
                 'status': 'graded',
             },
@@ -257,8 +251,6 @@ def academy_grade(codename, username, timeout):
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             json={
-                'unit': codename,
-                'username': username,
                 'score': None,
                 'status': 'failed',
                 'message': "Unhandled exception",
