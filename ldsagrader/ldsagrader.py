@@ -63,7 +63,7 @@ def notebook():
 # noinspection PyShadowingNames
 @notebook.command('validate')
 @click.argument('notebook', type=click.Path(exists=True))
-@click.option('--checksum', required=True)
+@click.option('--checksum', required=False)
 @click.option('--timeout', type=int, default=None)
 def notebook_validate(notebook, checksum, timeout):
     """
@@ -71,9 +71,10 @@ def notebook_validate(notebook, checksum, timeout):
     """
     notebook = nbformat.read(notebook, as_version=nbformat.NO_CONVERT)
 
-    if not utils.is_valid(notebook, checksum):
-        print("Checksum mismatch! (a)")
-        sys.exit(1)
+    if checksum:
+        if not utils.is_valid(notebook, checksum):
+            print("Checksum mismatch! (a)")
+            sys.exit(1)
 
     print("Executing notebook...")
     notebook = utils.execute(notebook, timeout, allow_errors=False)
@@ -83,7 +84,6 @@ def notebook_validate(notebook, checksum, timeout):
         sys.exit(1)
 
     print("Grading notebook...")
-    notebook = nbformat.reads(notebook, as_version=nbformat.NO_CONVERT)
     total_score, max_score = utils.grade(notebook)
 
     if round(max_score, 5) != 20:
@@ -121,7 +121,6 @@ def notebook_grade(notebook, checksum, timeout):
         print("Checksum mismatch! (b)")
         sys.exit(1)
 
-    notebook = nbformat.reads(notebook, as_version=nbformat.NO_CONVERT)
     total_score, max_score = utils.grade(notebook)
     print(f"Score: {total_score}/{max_score}")
 
@@ -168,7 +167,7 @@ def academy():
     pass
 
 
-# noinspection PyShadowingNames
+# noinspection PyShadowingNames,PyBroadException
 @academy.command('grade')
 @click.option('--timeout', type=int, default=None)
 @click.option('--codename', type=str, required=True)
@@ -223,7 +222,7 @@ def academy_grade(codename, username, timeout):
         print(f"Score: {total_score}/{max_score}")
 
         print("Posting results...")
-        fp = io.StringIO("INIT!!")
+        fp = io.StringIO()
         nbformat.write(notebook, fp)
         fp.seek(0)
         response = requests.patch(
@@ -257,6 +256,52 @@ def academy_grade(codename, username, timeout):
             },
         )
         response.raise_for_status()
+
+
+# noinspection PyShadowingNames
+@academy.command('validate')
+@click.option('--timeout', type=int, default=None)
+@click.option('--codename', type=str, required=True)
+def academy_validate(codename, timeout):
+    """
+    Validate notebook hashes and grade
+    """
+    notebook_path = utils.find_exercise_nb(codename)
+    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    print("Fetching checksum...")
+    response = requests.get(
+        config['checksum_url'].format(codename=codename),
+        headers={'Authorization': f"Token {config['token']}"},
+    )
+    response.raise_for_status()
+    checksum = response.json()['checksum']
+
+    print("Validating notebook...")
+    if not utils.is_valid(notebook, checksum):
+        print("Checksum mismatch! (a)")
+        sys.exit(1)
+
+    print("Executing notebook...")
+    notebook = utils.execute(notebook, timeout)
+
+    if not utils.is_valid(notebook, checksum):
+        print("Checksum mismatch! (b)")
+        sys.exit(1)
+
+    print("Grading notebook...")
+    total_score, max_score = utils.grade(notebook)
+    print(f"Score: {total_score}/{max_score}")
+
+    if round(max_score, 5) != 20:
+        print("Max score doesn't add to 20")
+        sys.exit(1)
+
+    if total_score < max_score:
+        print("Total score lower than max score")
+        sys.exit(1)
+
+    print("Notebook OK")
 
 
 # noinspection PyShadowingNames
