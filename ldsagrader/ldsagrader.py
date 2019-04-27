@@ -1,7 +1,6 @@
 import io
 import os
 import sys
-from urllib.parse import urljoin
 
 import click
 import nbformat
@@ -193,7 +192,7 @@ def academy_grade(codename, username, timeout):
         print("Validating notebook...")
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
-            requests.post(
+            requests.patch(
                 config['grading_url'].format(username=username,
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
@@ -210,7 +209,7 @@ def academy_grade(codename, username, timeout):
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
-            requests.post(
+            requests.patch(
                 config['grading_url'].format(username=username,
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
@@ -231,7 +230,7 @@ def academy_grade(codename, username, timeout):
         fp = io.StringIO("INIT!!")
         nbformat.write(notebook, fp)
         fp.seek(0)
-        response = requests.post(
+        response = requests.patch(
             config['grading_url'].format(username=username,
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
@@ -253,7 +252,7 @@ def academy_grade(codename, username, timeout):
             print(response.content)
 
     except Exception:
-        response = requests.post(
+        response = requests.patch(
             config['grading_url'].format(username=username,
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
