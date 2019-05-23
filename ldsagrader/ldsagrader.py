@@ -262,32 +262,35 @@ def academy_grade(codename, username, timeout):
 @academy.command('validate')
 @click.option('--timeout', type=int, default=None)
 @click.option('--codename', type=str, required=True)
-def academy_validate(codename, timeout):
+@click.option('--skipchecksum', type=bool, required=False, default=False)
+def academy_validate(codename, timeout, skipchecksum):
     """
     Validate notebook hashes and grade
     """
     notebook_path = utils.find_exercise_nb(codename)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
-    print("Fetching checksum...")
-    response = requests.get(
-        config['checksum_url'].format(codename=codename),
-        headers={'Authorization': f"Token {config['token']}"},
-    )
-    response.raise_for_status()
-    checksum = response.json()['checksum']
+    if skipchecksum:
+        print("Fetching checksum...")
+        response = requests.get(
+            config['checksum_url'].format(codename=codename),
+            headers={'Authorization': f"Token {config['token']}"},
+        )
+        response.raise_for_status()
+        checksum = response.json()['checksum']
 
-    print("Validating notebook...")
-    if not utils.is_valid(notebook, checksum):
-        print("Checksum mismatch! (a)")
-        sys.exit(1)
+        print("Validating notebook...")
+        if not utils.is_valid(notebook, checksum):
+            print("Checksum mismatch! (a)")
+            sys.exit(1)
 
     print("Executing notebook...")
     notebook = utils.execute(notebook, timeout)
 
-    if not utils.is_valid(notebook, checksum):
-        print("Checksum mismatch! (b)")
-        sys.exit(1)
+    if skipchecksum:
+        if not utils.is_valid(notebook, checksum):
+            print("Checksum mismatch! (b)")
+            sys.exit(1)
 
     print("Grading notebook...")
     total_score, max_score = utils.grade(notebook)
