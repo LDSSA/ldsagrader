@@ -77,7 +77,7 @@ def notebook_validate(notebook, checksum, timeout):
             sys.exit(1)
 
     print("Executing notebook...")
-    notebook = utils.execute(notebook, timeout, allow_errors=False)
+    notebook = utils.execute(notebook, timeout)
 
     if checksum:
         if not utils.is_valid(notebook, checksum):
@@ -179,6 +179,7 @@ def academy_grade(codename, username, timeout):
     """
     try:
         notebook_path = utils.find_exercise_nb(codename)
+        head, tail = os.path.split(notebook_path)
         notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
         print("Fetching checksum...")
@@ -203,7 +204,10 @@ def academy_grade(codename, username, timeout):
             sys.exit(0)
 
         print("Executing notebook...")
+        cwd = os.getcwd()
+        os.chdir(head)
         notebook = utils.execute(notebook, timeout)
+        os.chdir(cwd)
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
@@ -263,33 +267,37 @@ def academy_grade(codename, username, timeout):
 @academy.command('validate')
 @click.option('--timeout', type=int, default=None)
 @click.option('--codename', type=str, required=True)
-@click.option('--skipchecksum', type=bool, required=False, default=False)
-def academy_validate(codename, timeout, skipchecksum):
+@click.option('--checksum', is_flag=True)
+def academy_validate(codename, timeout, checksum):
     """
     Validate notebook hashes and grade
     """
     notebook_path = utils.find_exercise_nb(codename)
+    head, tail = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
-    if skipchecksum:
+    if checksum:
         print("Fetching checksum...")
         response = requests.get(
             config['checksum_url'].format(codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
         )
         response.raise_for_status()
-        checksum = response.json()['checksum']
+        db_checksum = response.json()['checksum']
 
         print("Validating notebook...")
-        if not utils.is_valid(notebook, checksum):
+        if not utils.is_valid(notebook, db_checksum):
             print("Checksum mismatch! (a)")
             sys.exit(1)
 
     print("Executing notebook...")
+    cwd = os.getcwd()
+    os.chdir(head)
     notebook = utils.execute(notebook, timeout)
+    os.chdir(cwd)
 
-    if skipchecksum:
-        if not utils.is_valid(notebook, checksum):
+    if checksum:
+        if not utils.is_valid(notebook, db_checksum):
             print("Checksum mismatch! (b)")
             sys.exit(1)
 
@@ -342,6 +350,30 @@ def academy_clear(codename):
     print("Clearing notebook...")
     notebook = utils.clear(notebook)
     print("Writing notebook...")
+    nbformat.write(notebook, notebook_path)
+
+
+@academy.command('execute')
+@click.option('--timeout', type=int, default=None)
+@click.option('--codename', type=str, required=True)
+def academy_execute(codename, timeout):
+    """
+    Run
+    """
+    notebook_path = utils.find_exercise_nb(codename)
+    head, tail = os.path.split(notebook_path)
+    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    print("Executing notebook...")
+    cwd = os.getcwd()
+    os.chdir(head)
+    notebook = utils.execute(notebook, timeout)
+    os.chdir(cwd)
+
+    print("Grading notebook...")
+    total_score, max_score = utils.grade(notebook)
+    print(f"Score: {total_score}/{max_score}")
+
     nbformat.write(notebook, notebook_path)
 
 
