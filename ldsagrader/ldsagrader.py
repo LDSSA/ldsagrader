@@ -79,9 +79,10 @@ def notebook_validate(notebook, checksum, timeout):
     print("Executing notebook...")
     notebook = utils.execute(notebook, timeout, allow_errors=False)
 
-    if checksum and not utils.is_valid(notebook, checksum):
-        print("Checksum mismatch! (b)")
-        sys.exit(1)
+    if checksum:
+        if not utils.is_valid(notebook, checksum):
+            print("Checksum mismatch! (b)")
+            sys.exit(1)
 
     print("Grading notebook...")
     total_score, max_score = utils.grade(notebook)
