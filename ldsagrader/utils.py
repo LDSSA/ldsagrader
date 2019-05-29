@@ -10,7 +10,7 @@ from traitlets.config import Config
 def find_path(codename):
     for root, dirs, files in os.walk(".", topdown=False):
         for dir_ in dirs:
-            if dir_.startswith(codename):
+            if dir_.lower().startswith(codename.lower()):
                 return os.path.join(root, dir_)
 
     raise RuntimeError("Learning Unit directory not found")
