@@ -177,6 +177,7 @@ def academy_grade(codename, username, timeout):
     """
     Update notebook metadata in db
     """
+    print("Starting")
     try:
         notebook_path = utils.find_exercise_nb(codename)
         head, tail = os.path.split(notebook_path)
@@ -261,6 +262,7 @@ def academy_grade(codename, username, timeout):
             },
         )
         response.raise_for_status()
+        raise
 
 
 # noinspection PyShadowingNames
