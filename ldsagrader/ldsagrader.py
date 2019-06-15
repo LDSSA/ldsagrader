@@ -191,6 +191,16 @@ def academy_grade(codename, username, timeout):
         response.raise_for_status()
         checksum = response.json()['checksum']
 
+        # Mark as grading
+        requests.patch(
+            config['grading_url'].format(username=username,
+                                         codename=codename),
+            headers={'Authorization': f"Token {config['token']}"},
+            json={
+                'score': None,
+                'status': 'grading'},
+        )
+
         print("Validating notebook...")
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
