@@ -188,31 +188,51 @@ def academy_grade(codename, username, timeout):
             config['checksum_url'].format(codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
         checksum = response.json()['checksum']
 
         # Mark as grading
-        requests.patch(
+        response = requests.put(
             config['grading_url'].format(username=username,
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             json={
+                'status': 'grading',
                 'score': None,
-                'status': 'grading'},
+                'notebook': None,
+                'message': '',
+            },
         )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
 
         print("Validating notebook...")
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
-            requests.patch(
+            response = requests.put(
                 config['grading_url'].format(username=username,
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
+                    'status': 'out-of-date',
                     'score': None,
-                    'status': 'out-of-date'},
+                    'notebook': None,
+                    'message': '',
+                },
             )
-            sys.exit(0)
+            try:
+                response.raise_for_status()
+            except HTTPError:
+                print(response.content)
+                raise
+            sys.exit(1)
 
         print("Executing notebook...")
         cwd = os.getcwd()
@@ -222,16 +242,23 @@ def academy_grade(codename, username, timeout):
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
-            requests.patch(
+            response = requests.put(
                 config['grading_url'].format(username=username,
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
-                    'score': 0,
-                    'status': 'out-of-date',
+                    'status': 'grading',
+                    'score': None,
+                    'notebook': None,
+                    'message': '',
                 },
             )
-            sys.exit(0)
+            try:
+                response.raise_for_status()
+            except HTTPError:
+                print(response.content)
+                raise
+            sys.exit(1)
 
         print("Grading notebook...")
         total_score, max_score = utils.grade(notebook)
@@ -241,34 +268,35 @@ def academy_grade(codename, username, timeout):
         fp = io.StringIO()
         nbformat.write(notebook, fp)
         fp.seek(0)
-        response = requests.patch(
+        response = requests.put(
             config['grading_url'].format(username=username,
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             data={
-                'score': total_score,
                 'status': 'graded',
+                'score': total_score,
+                'message': '',
             },
             files={
                 'notebook': ('notebook.ipynb', fp, 'application/x-ipynb+json')
             },
         )
-        print(response.request.headers)
         try:
             response.raise_for_status()
-
         except HTTPError:
             print(response.content)
+            raise
 
-    except Exception:
-        response = requests.patch(
+    except Exception as exc:
+        response = requests.put(
             config['grading_url'].format(username=username,
                                          codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
             json={
-                'score': None,
                 'status': 'failed',
-                'message': "Unhandled exception",
+                'score': None,
+                'notebook': None,
+                'message': f"Unhandled exception {str(exc)}",
             },
         )
         response.raise_for_status()
@@ -294,7 +322,11 @@ def academy_validate(codename, timeout, checksum):
             config['checksum_url'].format(codename=codename),
             headers={'Authorization': f"Token {config['token']}"},
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
         db_checksum = response.json()['checksum']
 
         print("Validating notebook...")
@@ -343,11 +375,13 @@ def academy_update(codename):
     response = requests.patch(
         config['checksum_url'].format(codename=codename),
         headers={'Authorization': f"Token {config['token']}"},
-        json={
-            'checksum': checksum,
-        }
+        json={'checksum': checksum}
     )
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except HTTPError:
+        print(response.content)
+        raise
 
 
 # noinspection PyShadowingNames
