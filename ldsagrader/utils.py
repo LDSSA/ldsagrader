@@ -71,6 +71,7 @@ def clear(notebook):
         'nbconvert.preprocessors.ClearOutputPreprocessor',
         'nbgrader.preprocessors.ClearSolutions',
         'nbgrader.preprocessors.LockCells',
+        'ldsagrader.preprocessors.ForbidHiddenTests',
     ]
     exporter = nbconvert.NotebookExporter(config=c)
     notebook, _ = exporter.from_notebook_node(notebook)
