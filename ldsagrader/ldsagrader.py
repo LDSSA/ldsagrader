@@ -71,6 +71,9 @@ def notebook_validate(notebook, checksum, timeout):
     """
     notebook = nbformat.read(notebook, as_version=nbformat.NO_CONVERT)
 
+    print("Clearing notebook...")
+    notebook = utils.clear(notebook)
+
     if checksum:
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
@@ -315,6 +318,9 @@ def academy_validate(codename, timeout, checksum):
     notebook_path = utils.find_exercise_nb(codename)
     head, tail = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    print("Clearing notebook...")
+    notebook = utils.clear(notebook)
 
     if checksum:
         print("Fetching checksum...")
