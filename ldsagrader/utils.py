@@ -70,6 +70,7 @@ def clear(notebook):
     c.NotebookExporter.preprocessors = [
         'nbconvert.preprocessors.ClearOutputPreprocessor',
         'nbgrader.preprocessors.ClearSolutions',
+        'nbgrader.preprocessors.LockCells',
     ]
     exporter = nbconvert.NotebookExporter(config=c)
     notebook, _ = exporter.from_notebook_node(notebook)
