@@ -47,11 +47,11 @@ setup(
     include_package_data=True,
     keywords='ldsagrader',
     name='ldsagrader',
-    packages=find_packages(include=['ldsagrader']),
+    packages=find_packages(),
     # setup_requires=setup_requirements,
     # test_suite='tests',
     # tests_require=test_requirements,
     url='https://github.com/hcastilho/ldsagrader',
-    version='0.1.9',
+    version='0.1.10',
     zip_safe=False,
 )
