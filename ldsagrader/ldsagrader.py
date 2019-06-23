@@ -71,9 +71,6 @@ def notebook_validate(notebook, checksum, timeout):
     """
     notebook = nbformat.read(notebook, as_version=nbformat.NO_CONVERT)
 
-    print("Clearing notebook...")
-    notebook = utils.clear(notebook)
-
     if checksum:
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
@@ -98,6 +95,9 @@ def notebook_validate(notebook, checksum, timeout):
     if total_score < max_score:
         print("Total score lower than max score")
         sys.exit(1)
+
+    print("Clearing notebook...")
+    utils.clear(notebook)
 
     print("Notebook OK")
 
@@ -319,9 +319,6 @@ def academy_validate(codename, timeout, checksum):
     head, tail = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
-    print("Clearing notebook...")
-    notebook = utils.clear(notebook)
-
     if checksum:
         print("Fetching checksum...")
         response = requests.get(
@@ -362,6 +359,9 @@ def academy_validate(codename, timeout, checksum):
     if total_score < max_score:
         print("Total score lower than max score")
         sys.exit(1)
+
+    print("Clearing notebook...")
+    utils.clear(notebook)
 
     print("Notebook OK")
 
