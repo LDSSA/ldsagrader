@@ -77,7 +77,7 @@ def notebook_validate(notebook, checksum, timeout):
             sys.exit(1)
 
     print("Executing notebook...")
-    notebook = utils.execute(notebook, timeout)
+    notebook = utils.execute(notebook, timeout, allow_errors=False)
 
     if checksum:
         if not utils.is_valid(notebook, checksum):
@@ -340,7 +340,7 @@ def academy_validate(codename, timeout, checksum):
     print("Executing notebook...")
     cwd = os.getcwd()
     os.chdir(head)
-    notebook = utils.execute(notebook, timeout)
+    notebook = utils.execute(notebook, timeout, allow_errors=False)
     os.chdir(cwd)
 
     if checksum:
