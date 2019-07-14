@@ -14,6 +14,7 @@ config = {
     'token': os.environ.get('LDSA_TOKEN'),
     'grading_url': os.environ.get('LDSA_GRADING_URL'),
     'checksum_url': os.environ.get('LDSA_CHECKSUM_URL'),
+    'hackathon_url': os.environ.get('LDSA_HACKATHON_URL'),
 }
 
 
@@ -427,6 +428,39 @@ def academy_execute(codename, timeout):
     print(f"Score: {total_score}/{max_score}")
 
     nbformat.write(notebook, notebook_path)
+
+
+@main.group()
+def hackathon():
+    pass
+
+
+# noinspection PyShadowingNames
+@hackathon.command('update')
+@click.option('--codename', type=str, required=True)
+def hackathon_update(codename):
+    """
+    Update hackathon script and data
+    """
+    hackathon_path = os.path.join(utils.find_path(codename), 'portal')
+    script_file = os.path.join(hackathon_path, 'score.py')
+    data_file = os.path.join(hackathon_path, 'data')
+
+    print("Posting hackathon...")
+    files = {
+        'script_file': open(script_file, 'rb'),
+        'data_file': open(data_file, 'rb'),
+    }
+    response = requests.put(
+        config['hackathon_url'].format(codename=codename),
+        headers={'Authorization': f"Token {config['token']}"},
+        files=files,
+    )
+    try:
+        response.raise_for_status()
+    except HTTPError:
+        print(response.content)
+        raise
 
 
 if __name__ == '__main__':

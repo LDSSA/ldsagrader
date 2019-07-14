@@ -1,3 +1,4 @@
 LDSA_TOKEN=52f7785b7ff93202f21c7e560bc6d08d0211d488
 LDSA_GRADING_URL=http://localhost:8000/academy/api/grades/{username}/units/{codename}/
 LDSA_CHECKSUM_URL=http://localhost:8000/academy/api/checksums/{codename}/
+LDSA_HACKATHON_URL=http://localhost:8000/hackathons/api/setup/{codename}/
