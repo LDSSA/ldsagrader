@@ -462,6 +462,28 @@ def hackathon_update(codename):
         print(response.content)
         raise
 
+# noinspection PyShadowingNames
+@academy.command('verify')
+@click.option('--timeout', type=int, default=None)
+@click.option('--codename', type=str, required=True)
+def verify(codename, timeout, checksum):
+    """
+    Validate notebook hashes and grade
+    """
+    notebook_path = utils.find_exercise_nb(codename)
+    head, tail = os.path.split(notebook_path)
+    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    print("Executing notebook...")
+    cwd = os.getcwd()
+    os.chdir(head)
+    notebook = utils.execute(notebook, timeout, allow_errors=False)
+    os.chdir(cwd)
+
+    print("Clearing notebook...")
+    utils.clear(notebook)
+
+    print("Notebook OK")
 
 if __name__ == '__main__':
     main()
