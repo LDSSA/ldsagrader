@@ -466,7 +466,7 @@ def hackathon_update(codename):
 @academy.command('verify')
 @click.option('--timeout', type=int, default=None)
 @click.option('--codename', type=str, required=True)
-def verify(codename, timeout, checksum):
+def verify(codename, timeout):
     """
     Validate notebook hashes and grade
     """
@@ -484,6 +484,7 @@ def verify(codename, timeout, checksum):
     utils.clear(notebook)
 
     print("Notebook OK")
+
 
 if __name__ == '__main__':
     main()
