@@ -225,7 +225,7 @@ def academy_grade(codename, username, timeout):
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
-                    'status': 'out-of-date',
+                    'status': 'checksum-failed',
                     'score': None,
                     'notebook': None,
                     'message': '',
@@ -251,7 +251,7 @@ def academy_grade(codename, username, timeout):
                                              codename=codename),
                 headers={'Authorization': f"Token {config['token']}"},
                 json={
-                    'status': 'grading',
+                    'status': 'checksum-failed',
                     'score': None,
                     'notebook': None,
                     'message': '',
@@ -430,6 +430,30 @@ def academy_execute(codename, timeout):
     nbformat.write(notebook, notebook_path)
 
 
+# noinspection PyShadowingNames
+@academy.command('verify')
+@click.option('--timeout', type=int, default=None)
+@click.option('--codename', type=str, required=True)
+def verify(codename, timeout):
+    """
+    Validate notebook hashes and grade
+    """
+    notebook_path = utils.find_exercise_nb(codename)
+    head, tail = os.path.split(notebook_path)
+    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    print("Executing notebook...")
+    cwd = os.getcwd()
+    os.chdir(head)
+    notebook = utils.execute(notebook, timeout, allow_errors=False)
+    os.chdir(cwd)
+
+    print("Clearing notebook...")
+    utils.clear(notebook)
+
+    print("Notebook OK")
+
+
 @main.group()
 def hackathon():
     pass
@@ -462,17 +486,172 @@ def hackathon_update(codename):
         print(response.content)
         raise
 
-# noinspection PyShadowingNames
-@academy.command('verify')
+
+@main.group()
+def portal():
+    pass
+
+
+# noinspection PyShadowingNames,PyBroadException
+@portal.command('grade')
 @click.option('--timeout', type=int, default=None)
-@click.option('--codename', type=str, required=True)
-def verify(codename, timeout):
+@click.option('--notebook_path', type=str, required=True)
+@click.option('--grading_url', type=str, required=True)
+@click.option('--checksum_url', type=str, required=True)
+@click.option('--token', type=str, required=True)
+def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=None):
+    """
+    Update notebook metadata in db
+    """
+    print("Starting")
+    try:
+        head, _ = os.path.split(notebook_path)
+        notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+        print("Fetching checksum...")
+        response = requests.get(
+            checksum_url,
+            headers={'Authorization': f"Token {token}"},
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
+        checksum = response.json()['checksum']
+
+        # Mark as grading
+        print("Mark as grading...")
+        response = requests.put(
+            grading_url,
+            headers={'Authorization': f"Token {token}"},
+            json={
+                'status': 'grading',
+                'score': None,
+                'notebook': None,
+                'message': '',
+            },
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
+
+        print("Validating notebook...")
+        if not utils.is_valid(notebook, checksum):
+            print("Checksum mismatch! (a)")
+            response = requests.put(grading_url,
+                headers={'Authorization': f"Token {token}"},
+                json={
+                    'status': 'checksum-failed',
+                    'score': None,
+                    'notebook': None,
+                    'message': '',
+                },
+            )
+            try:
+                response.raise_for_status()
+            except HTTPError:
+                print(response.content)
+                raise
+            sys.exit(1)
+
+        print("Executing notebook...")
+        cwd = os.getcwd()
+        os.chdir(head)
+        notebook = utils.execute(notebook, timeout)
+        os.chdir(cwd)
+
+        if not utils.is_valid(notebook, checksum):
+            print("Checksum mismatch! (b)")
+            response = requests.put(grading_url,
+                headers={'Authorization': f"Token {token}"},
+                json={
+                    'status': 'checksum-failed',
+                    'score': None,
+                    'notebook': None,
+                    'message': '',
+                },
+            )
+            try:
+                response.raise_for_status()
+            except HTTPError:
+                print(response.content)
+                raise
+            sys.exit(1)
+
+        print("Grading notebook...")
+        total_score, max_score = utils.grade(notebook)
+        print(f"Score: {total_score}/{max_score}")
+
+        print("Posting results...")
+        fp = io.StringIO()
+        nbformat.write(notebook, fp)
+        fp.seek(0)
+        response = requests.put(
+            grading_url,
+            headers={'Authorization': f"Token {token}"},
+            data={
+                'status': 'graded',
+                'score': total_score,
+                'message': '',
+            },
+            files={
+                'notebook': ('notebook.ipynb', fp, 'application/x-ipynb+json')
+            },
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
+
+    except Exception as exc:
+        response = requests.put(
+            grading_url,
+            headers={'Authorization': f"Token {token}"},
+            json={
+                'status': 'failed',
+                'score': None,
+                'notebook': None,
+                'message': f"Unhandled exception {str(exc)}",
+            },
+        )
+        response.raise_for_status()
+        raise
+
+
+# noinspection PyShadowingNames
+@portal.command('validate')
+@click.option('--notebook_path', type=str, required=True)
+@click.option('--checksum_url', type=str, required=True)
+@click.option('--timeout', type=int, default=None)
+@click.option('--token', type=str, required=True)
+def portal_validate(notebook_path, checksum_url, token, timeout):
     """
     Validate notebook hashes and grade
     """
-    notebook_path = utils.find_exercise_nb(codename)
     head, tail = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    if checksum:
+        print("Fetching checksum...")
+        response = requests.get(
+            checksum_url,
+            headers={'Authorization': f"Token {token}"},
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(response.content)
+            raise
+        db_checksum = response.json()['checksum']
+
+        print("Validating notebook...")
+        if not utils.is_valid(notebook, db_checksum):
+            print("Checksum mismatch! (a)")
+            sys.exit(1)
 
     print("Executing notebook...")
     cwd = os.getcwd()
@@ -480,10 +659,65 @@ def verify(codename, timeout):
     notebook = utils.execute(notebook, timeout, allow_errors=False)
     os.chdir(cwd)
 
+    if checksum:
+        if not utils.is_valid(notebook, db_checksum):
+            print("Checksum mismatch! (b)")
+            sys.exit(1)
+
+    print("Grading notebook...")
+    total_score, max_score = utils.grade(notebook)
+    print(f"Score: {total_score}/{max_score}")
+
+    if round(max_score, 5) != 20:
+        print("Max score doesn't add to 20")
+        sys.exit(1)
+
+    if total_score < max_score:
+        print("Total score lower than max score")
+        sys.exit(1)
+
     print("Clearing notebook...")
     utils.clear(notebook)
 
     print("Notebook OK")
+
+
+# noinspection PyShadowingNames
+@portal.command('update')
+@click.option('--notebook_path', type=str, required=True)
+@click.option('--checksum_url', type=str, required=True)
+@click.option('--token', type=str, required=True)
+def portal_update(notebook_path, checksum_url, token):
+    """
+    Update notebook metadata in db
+    """
+    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+
+    print("Posting checksums...")
+    checksum = utils.calculate_checksum(notebook)
+    response = requests.patch(
+        checksum_url,
+        headers={'Authorization': f"Token {token}"},
+        json={'checksum': checksum}
+    )
+    try:
+        response.raise_for_status()
+    except HTTPError:
+        print(response.content)
+        raise
+
+
+@portal.command('clear')
+@click.option('--notebook_path', type=str, required=True)
+def portal_clear(notebook_path):
+    """
+    Replace exercise notebook with student version
+    """
+    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
+    print("Clearing notebook...")
+    notebook = utils.clear(notebook)
+    print("Writing notebook...")
+    nbformat.write(notebook, notebook_path)
 
 
 if __name__ == '__main__':
