@@ -52,6 +52,6 @@ setup(
     # test_suite='tests',
     # tests_require=test_requirements,
     url='https://github.com/hcastilho/ldsagrader',
-    version='0.1.16',
+    version='0.5.0',
     zip_safe=False,
 )
