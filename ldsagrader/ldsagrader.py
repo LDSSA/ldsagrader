@@ -11,10 +11,10 @@ from . import utils
 
 
 config = {
-    'token': os.environ.get('LDSA_TOKEN'),
-    'grading_url': os.environ.get('LDSA_GRADING_URL'),
-    'checksum_url': os.environ.get('LDSA_CHECKSUM_URL'),
-    'hackathon_url': os.environ.get('LDSA_HACKATHON_URL'),
+    "token": os.environ.get("LDSA_TOKEN"),
+    "grading_url": os.environ.get("LDSA_GRADING_URL"),
+    "checksum_url": os.environ.get("LDSA_CHECKSUM_URL"),
+    "hackathon_url": os.environ.get("LDSA_HACKATHON_URL"),
 }
 
 
@@ -29,8 +29,8 @@ def checksum():
 
 
 # noinspection PyShadowingNames
-@checksum.command('digest')
-@click.argument('notebook', type=click.Path(exists=True))
+@checksum.command("digest")
+@click.argument("notebook", type=click.Path(exists=True))
 def checksum_digest(notebook):
     """
     Output grading cell hashes
@@ -40,9 +40,9 @@ def checksum_digest(notebook):
 
 
 # noinspection PyShadowingNames
-@checksum.command('validate')
-@click.argument('notebook', type=click.Path(exists=True))
-@click.option('--checksum', type=str, required=True)
+@checksum.command("validate")
+@click.argument("notebook", type=click.Path(exists=True))
+@click.option("--checksum", type=str, required=True)
 def checksum_validate(notebook, checksum):
     """
     Validate hashes against notebook
@@ -62,10 +62,10 @@ def notebook():
 
 
 # noinspection PyShadowingNames
-@notebook.command('validate')
-@click.argument('notebook', type=click.Path(exists=True))
-@click.option('--checksum', required=False)
-@click.option('--timeout', type=int, default=None)
+@notebook.command("validate")
+@click.argument("notebook", type=click.Path(exists=True))
+@click.option("--checksum", required=False)
+@click.option("--timeout", type=int, default=None)
 def notebook_validate(notebook, checksum, timeout):
     """
     Validate notebook hashes and grade
@@ -104,10 +104,10 @@ def notebook_validate(notebook, checksum, timeout):
 
 
 # noinspection PyShadowingNames
-@notebook.command('grade')
-@click.argument('notebook', type=click.Path(exists=True))
-@click.option('--checksum', required=True, type=click.Path(exists=True))
-@click.option('--timeout', type=int, default=None)
+@notebook.command("grade")
+@click.argument("notebook", type=click.Path(exists=True))
+@click.option("--checksum", required=True, type=click.Path(exists=True))
+@click.option("--timeout", type=int, default=None)
 def notebook_grade(notebook, checksum, timeout):
     """
     Grade notebook running validations
@@ -131,10 +131,10 @@ def notebook_grade(notebook, checksum, timeout):
 
 
 # noinspection PyShadowingNames
-@notebook.command('execute')
-@click.argument('notebook', type=click.Path(exists=True))
-@click.option('--timeout', type=int, default=None)
-@click.option('--output', type=str)
+@notebook.command("execute")
+@click.argument("notebook", type=click.Path(exists=True))
+@click.option("--timeout", type=int, default=None)
+@click.option("--output", type=str)
 def notebook_execute(notebook, timeout, output):
     """
     Execute notebook and output results to file
@@ -150,9 +150,9 @@ def notebook_execute(notebook, timeout, output):
 
 
 # noinspection PyShadowingNames
-@notebook.command('clear')
-@click.argument('notebook', type=click.Path(exists=True))
-@click.option('--output', type=str)
+@notebook.command("clear")
+@click.argument("notebook", type=click.Path(exists=True))
+@click.option("--output", type=str)
 def notebook_clear(notebook, output):
     """
     Create student version of notebook
@@ -173,10 +173,10 @@ def academy():
 
 
 # noinspection PyShadowingNames,PyBroadException
-@academy.command('grade')
-@click.option('--timeout', type=int, default=None)
-@click.option('--codename', type=str, required=True)
-@click.option('--username', type=str, required=True)
+@academy.command("grade")
+@click.option("--timeout", type=int, default=None)
+@click.option("--codename", type=str, required=True)
+@click.option("--username", type=str, required=True)
 def academy_grade(codename, username, timeout):
     """
     Update notebook metadata in db
@@ -184,31 +184,30 @@ def academy_grade(codename, username, timeout):
     print("Starting")
     try:
         notebook_path = utils.find_exercise_nb(codename)
-        head, tail = os.path.split(notebook_path)
+        head, _ = os.path.split(notebook_path)
         notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
         print("Fetching checksum...")
         response = requests.get(
-            config['checksum_url'].format(codename=codename),
-            headers={'Authorization': f"Token {config['token']}"},
+            config["checksum_url"].format(codename=codename),
+            headers={"Authorization": f"Token {config['token']}"},
         )
         try:
             response.raise_for_status()
         except HTTPError:
             print(response.content)
             raise
-        checksum = response.json()['checksum']
+        checksum = response.json()["checksum"]
 
         # Mark as grading
         response = requests.put(
-            config['grading_url'].format(username=username,
-                                         codename=codename),
-            headers={'Authorization': f"Token {config['token']}"},
+            config["grading_url"].format(username=username, codename=codename),
+            headers={"Authorization": f"Token {config['token']}"},
             json={
-                'status': 'grading',
-                'score': None,
-                'notebook': None,
-                'message': '',
+                "status": "grading",
+                "score": None,
+                "notebook": None,
+                "message": "",
             },
         )
         try:
@@ -221,14 +220,13 @@ def academy_grade(codename, username, timeout):
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
             response = requests.put(
-                config['grading_url'].format(username=username,
-                                             codename=codename),
-                headers={'Authorization': f"Token {config['token']}"},
+                config["grading_url"].format(username=username, codename=codename),
+                headers={"Authorization": f"Token {config['token']}"},
                 json={
-                    'status': 'checksum-failed',
-                    'score': None,
-                    'notebook': None,
-                    'message': '',
+                    "status": "checksum-failed",
+                    "score": None,
+                    "notebook": None,
+                    "message": "",
                 },
             )
             try:
@@ -239,22 +237,23 @@ def academy_grade(codename, username, timeout):
             sys.exit(1)
 
         print("Executing notebook...")
-        cwd = os.getcwd()
-        os.chdir(head)
+        if head:
+            cwd = os.getcwd()
+            os.chdir(head)
         notebook = utils.execute(notebook, timeout)
-        os.chdir(cwd)
+        if head:
+            os.chdir(cwd)
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
             response = requests.put(
-                config['grading_url'].format(username=username,
-                                             codename=codename),
-                headers={'Authorization': f"Token {config['token']}"},
+                config["grading_url"].format(username=username, codename=codename),
+                headers={"Authorization": f"Token {config['token']}"},
                 json={
-                    'status': 'checksum-failed',
-                    'score': None,
-                    'notebook': None,
-                    'message': '',
+                    "status": "checksum-failed",
+                    "score": None,
+                    "notebook": None,
+                    "message": "",
                 },
             )
             try:
@@ -273,17 +272,14 @@ def academy_grade(codename, username, timeout):
         nbformat.write(notebook, fp)
         fp.seek(0)
         response = requests.put(
-            config['grading_url'].format(username=username,
-                                         codename=codename),
-            headers={'Authorization': f"Token {config['token']}"},
+            config["grading_url"].format(username=username, codename=codename),
+            headers={"Authorization": f"Token {config['token']}"},
             data={
-                'status': 'graded',
-                'score': total_score,
-                'message': '',
+                "status": "graded",
+                "score": total_score,
+                "message": "",
             },
-            files={
-                'notebook': ('notebook.ipynb', fp, 'application/x-ipynb+json')
-            },
+            files={"notebook": ("notebook.ipynb", fp, "application/x-ipynb+json")},
         )
         try:
             response.raise_for_status()
@@ -293,14 +289,13 @@ def academy_grade(codename, username, timeout):
 
     except Exception as exc:
         response = requests.put(
-            config['grading_url'].format(username=username,
-                                         codename=codename),
-            headers={'Authorization': f"Token {config['token']}"},
+            config["grading_url"].format(username=username, codename=codename),
+            headers={"Authorization": f"Token {config['token']}"},
             json={
-                'status': 'failed',
-                'score': None,
-                'notebook': None,
-                'message': f"Unhandled exception {str(exc)}",
+                "status": "failed",
+                "score": None,
+                "notebook": None,
+                "message": f"Unhandled exception {str(exc)}",
             },
         )
         response.raise_for_status()
@@ -308,30 +303,30 @@ def academy_grade(codename, username, timeout):
 
 
 # noinspection PyShadowingNames
-@academy.command('validate')
-@click.option('--timeout', type=int, default=None)
-@click.option('--codename', type=str, required=True)
-@click.option('--checksum', is_flag=True)
+@academy.command("validate")
+@click.option("--timeout", type=int, default=None)
+@click.option("--codename", type=str, required=True)
+@click.option("--checksum", is_flag=True)
 def academy_validate(codename, timeout, checksum):
     """
     Validate notebook hashes and grade
     """
     notebook_path = utils.find_exercise_nb(codename)
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     if checksum:
         print("Fetching checksum...")
         response = requests.get(
-            config['checksum_url'].format(codename=codename),
-            headers={'Authorization': f"Token {config['token']}"},
+            config["checksum_url"].format(codename=codename),
+            headers={"Authorization": f"Token {config['token']}"},
         )
         try:
             response.raise_for_status()
         except HTTPError:
             print(response.content)
             raise
-        db_checksum = response.json()['checksum']
+        db_checksum = response.json()["checksum"]
 
         print("Validating notebook...")
         if not utils.is_valid(notebook, db_checksum):
@@ -339,10 +334,12 @@ def academy_validate(codename, timeout, checksum):
             sys.exit(1)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout, allow_errors=False)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     if checksum:
         if not utils.is_valid(notebook, db_checksum):
@@ -368,8 +365,8 @@ def academy_validate(codename, timeout, checksum):
 
 
 # noinspection PyShadowingNames
-@academy.command('update')
-@click.option('--codename', type=str, required=True)
+@academy.command("update")
+@click.option("--codename", type=str, required=True)
 def academy_update(codename):
     """
     Update notebook metadata in db
@@ -380,9 +377,9 @@ def academy_update(codename):
     print("Posting checksums...")
     checksum = utils.calculate_checksum(notebook)
     response = requests.patch(
-        config['checksum_url'].format(codename=codename),
-        headers={'Authorization': f"Token {config['token']}"},
-        json={'checksum': checksum}
+        config["checksum_url"].format(codename=codename),
+        headers={"Authorization": f"Token {config['token']}"},
+        json={"checksum": checksum},
     )
     try:
         response.raise_for_status()
@@ -392,8 +389,8 @@ def academy_update(codename):
 
 
 # noinspection PyShadowingNames
-@academy.command('clear')
-@click.option('--codename', type=str, required=True)
+@academy.command("clear")
+@click.option("--codename", type=str, required=True)
 def academy_clear(codename):
     """
     Replace exercise notebook with student version
@@ -406,22 +403,24 @@ def academy_clear(codename):
     nbformat.write(notebook, notebook_path)
 
 
-@academy.command('execute')
-@click.option('--timeout', type=int, default=None)
-@click.option('--codename', type=str, required=True)
+@academy.command("execute")
+@click.option("--timeout", type=int, default=None)
+@click.option("--codename", type=str, required=True)
 def academy_execute(codename, timeout):
     """
     Run
     """
     notebook_path = utils.find_exercise_nb(codename)
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     print("Grading notebook...")
     total_score, max_score = utils.grade(notebook)
@@ -431,22 +430,24 @@ def academy_execute(codename, timeout):
 
 
 # noinspection PyShadowingNames
-@academy.command('verify')
-@click.option('--timeout', type=int, default=None)
-@click.option('--codename', type=str, required=True)
+@academy.command("verify")
+@click.option("--timeout", type=int, default=None)
+@click.option("--codename", type=str, required=True)
 def verify(codename, timeout):
     """
     Validate notebook hashes and grade
     """
     notebook_path = utils.find_exercise_nb(codename)
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout, allow_errors=False)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     print("Clearing notebook...")
     utils.clear(notebook)
@@ -460,24 +461,24 @@ def hackathon():
 
 
 # noinspection PyShadowingNames
-@hackathon.command('update')
-@click.option('--codename', type=str, required=True)
+@hackathon.command("update")
+@click.option("--codename", type=str, required=True)
 def hackathon_update(codename):
     """
     Update hackathon script and data
     """
-    hackathon_path = os.path.join(utils.find_path(codename), 'portal')
-    script_file = os.path.join(hackathon_path, 'score.py')
-    data_file = os.path.join(hackathon_path, 'data')
+    hackathon_path = os.path.join(utils.find_path(codename), "portal")
+    script_file = os.path.join(hackathon_path, "score.py")
+    data_file = os.path.join(hackathon_path, "data")
 
     print("Posting hackathon...")
     files = {
-        'script_file': open(script_file, 'rb'),
-        'data_file': open(data_file, 'rb'),
+        "script_file": open(script_file, "rb"),
+        "data_file": open(data_file, "rb"),
     }
     response = requests.put(
-        config['hackathon_url'].format(codename=codename),
-        headers={'Authorization': f"Token {config['token']}"},
+        config["hackathon_url"].format(codename=codename),
+        headers={"Authorization": f"Token {config['token']}"},
         files=files,
     )
     try:
@@ -493,12 +494,12 @@ def portal():
 
 
 # noinspection PyShadowingNames,PyBroadException
-@portal.command('grade')
-@click.option('--timeout', type=int, default=None)
-@click.option('--notebook_path', type=str, required=True)
-@click.option('--grading_url', type=str, required=True)
-@click.option('--checksum_url', type=str, required=True)
-@click.option('--token', type=str, required=True)
+@portal.command("grade")
+@click.option("--timeout", type=int, default=None)
+@click.option("--notebook_path", type=str, required=True)
+@click.option("--grading_url", type=str, required=True)
+@click.option("--checksum_url", type=str, required=True)
+@click.option("--token", type=str, required=True)
 def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=None):
     """
     Update notebook metadata in db
@@ -511,25 +512,25 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
         print("Fetching checksum...")
         response = requests.get(
             checksum_url,
-            headers={'Authorization': f"Token {token}"},
+            headers={"Authorization": f"Token {token}"},
         )
         try:
             response.raise_for_status()
         except HTTPError:
             print(response.content)
             raise
-        checksum = response.json()['checksum']
+        checksum = response.json()["checksum"]
 
         # Mark as grading
         print("Mark as grading...")
         response = requests.put(
             grading_url,
-            headers={'Authorization': f"Token {token}"},
+            headers={"Authorization": f"Token {token}"},
             json={
-                'status': 'grading',
-                'score': None,
-                'notebook': None,
-                'message': '',
+                "status": "grading",
+                "score": None,
+                "notebook": None,
+                "message": "",
             },
         )
         try:
@@ -541,13 +542,14 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
         print("Validating notebook...")
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
-            response = requests.put(grading_url,
-                headers={'Authorization': f"Token {token}"},
+            response = requests.put(
+                grading_url,
+                headers={"Authorization": f"Token {token}"},
                 json={
-                    'status': 'checksum-failed',
-                    'score': None,
-                    'notebook': None,
-                    'message': '',
+                    "status": "checksum-failed",
+                    "score": None,
+                    "notebook": None,
+                    "message": "",
                 },
             )
             try:
@@ -558,20 +560,23 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
             sys.exit(1)
 
         print("Executing notebook...")
-        cwd = os.getcwd()
-        os.chdir(head)
+        if head:
+            cwd = os.getcwd()
+            os.chdir(head)
         notebook = utils.execute(notebook, timeout)
-        os.chdir(cwd)
+        if head:
+            os.chdir(cwd)
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
-            response = requests.put(grading_url,
-                headers={'Authorization': f"Token {token}"},
+            response = requests.put(
+                grading_url,
+                headers={"Authorization": f"Token {token}"},
                 json={
-                    'status': 'checksum-failed',
-                    'score': None,
-                    'notebook': None,
-                    'message': '',
+                    "status": "checksum-failed",
+                    "score": None,
+                    "notebook": None,
+                    "message": "",
                 },
             )
             try:
@@ -591,15 +596,13 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
         fp.seek(0)
         response = requests.put(
             grading_url,
-            headers={'Authorization': f"Token {token}"},
+            headers={"Authorization": f"Token {token}"},
             data={
-                'status': 'graded',
-                'score': total_score,
-                'message': '',
+                "status": "graded",
+                "score": total_score,
+                "message": "",
             },
-            files={
-                'notebook': ('notebook.ipynb', fp, 'application/x-ipynb+json')
-            },
+            files={"notebook": ("notebook.ipynb", fp, "application/x-ipynb+json")},
         )
         try:
             response.raise_for_status()
@@ -610,12 +613,12 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
     except Exception as exc:
         response = requests.put(
             grading_url,
-            headers={'Authorization': f"Token {token}"},
+            headers={"Authorization": f"Token {token}"},
             json={
-                'status': 'failed',
-                'score': None,
-                'notebook': None,
-                'message': f"Unhandled exception {str(exc)}",
+                "status": "failed",
+                "score": None,
+                "notebook": None,
+                "message": f"Unhandled exception {str(exc)}",
             },
         )
         response.raise_for_status()
@@ -623,21 +626,23 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
 
 
 # noinspection PyShadowingNames
-@portal.command('validate')
-@click.option('--notebook_path', type=str, required=True)
-@click.option('--timeout', type=int, default=None)
+@portal.command("validate")
+@click.option("--notebook_path", type=str, required=True)
+@click.option("--timeout", type=int, default=None)
 def portal_validate(notebook_path, timeout):
     """
     Validate notebook hashes and grade
     """
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout, allow_errors=False)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     print("Grading notebook...")
     total_score, max_score = utils.grade(notebook)
@@ -658,10 +663,10 @@ def portal_validate(notebook_path, timeout):
 
 
 # noinspection PyShadowingNames
-@portal.command('update')
-@click.option('--notebook_path', type=str, required=True)
-@click.option('--checksum_url', type=str, required=True)
-@click.option('--token', type=str, required=True)
+@portal.command("update")
+@click.option("--notebook_path", type=str, required=True)
+@click.option("--checksum_url", type=str, required=True)
+@click.option("--token", type=str, required=True)
 def portal_update(notebook_path, checksum_url, token):
     """
     Update notebook metadata in db
@@ -672,8 +677,8 @@ def portal_update(notebook_path, checksum_url, token):
     checksum = utils.calculate_checksum(notebook)
     response = requests.patch(
         checksum_url,
-        headers={'Authorization': f"Token {token}"},
-        json={'checksum': checksum}
+        headers={"Authorization": f"Token {token}"},
+        json={"checksum": checksum},
     )
     try:
         response.raise_for_status()
@@ -682,5 +687,5 @@ def portal_update(notebook_path, checksum_url, token):
         raise
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -25,10 +25,10 @@ def calculate_checksum(nb):
     m = hashlib.sha256()
     for cell in nb.cells:
         if utils.is_grade(cell):
-            grade_id = cell.metadata.nbgrader['grade_id']
+            grade_id = cell.metadata.nbgrader["grade_id"]
             checksum = utils.compute_checksum(cell)
-            m.update(grade_id.encode('utf-8'))
-            m.update(checksum.encode('utf-8'))
+            m.update(grade_id.encode("utf-8"))
+            m.update(checksum.encode("utf-8"))
 
     return m.hexdigest()
 
@@ -52,8 +52,8 @@ def is_valid(nb, checksum):
 def execute(notebook, timeout=None, allow_errors=True):
     c = Config()
     c.NotebookExporter.preprocessors = [
-        'nbconvert.preprocessors.ClearOutputPreprocessor',
-        'nbconvert.preprocessors.ExecutePreprocessor',
+        "nbconvert.preprocessors.ClearOutputPreprocessor",
+        "nbconvert.preprocessors.ExecutePreprocessor",
     ]
     c.ExecutePreprocessor.allow_errors = allow_errors
     if timeout:
@@ -68,10 +68,10 @@ def execute(notebook, timeout=None, allow_errors=True):
 def clear(notebook):
     c = Config()
     c.NotebookExporter.preprocessors = [
-        'nbconvert.preprocessors.ClearOutputPreprocessor',
-        'nbgrader.preprocessors.ClearSolutions',
-        'nbgrader.preprocessors.LockCells',
-        'ldsagrader.preprocessors.ForbidHiddenTests',
+        "nbconvert.preprocessors.ClearOutputPreprocessor",
+        "nbgrader.preprocessors.ClearSolutions",
+        "nbgrader.preprocessors.LockCells",
+        "ldsagrader.preprocessors.ForbidHiddenTests",
     ]
     exporter = nbconvert.NotebookExporter(config=c)
     notebook, _ = exporter.from_notebook_node(notebook)
