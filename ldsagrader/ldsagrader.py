@@ -707,18 +707,5 @@ def portal_update(notebook_path, checksum_url, token):
         raise
 
 
-@portal.command('clear')
-@click.option('--notebook_path', type=str, required=True)
-def portal_clear(notebook_path):
-    """
-    Replace exercise notebook with student version
-    """
-    notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
-    print("Clearing notebook...")
-    notebook = utils.clear(notebook)
-    print("Writing notebook...")
-    nbformat.write(notebook, notebook_path)
-
-
 if __name__ == '__main__':
     main()
