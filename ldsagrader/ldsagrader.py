@@ -184,7 +184,7 @@ def academy_grade(codename, username, timeout):
     print("Starting")
     try:
         notebook_path = utils.find_exercise_nb(codename)
-        head, tail = os.path.split(notebook_path)
+        head, _ = os.path.split(notebook_path)
         notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
         print("Fetching checksum...")
@@ -239,10 +239,12 @@ def academy_grade(codename, username, timeout):
             sys.exit(1)
 
         print("Executing notebook...")
-        cwd = os.getcwd()
-        os.chdir(head)
+        if head:
+            cwd = os.getcwd()
+            os.chdir(head)
         notebook = utils.execute(notebook, timeout)
-        os.chdir(cwd)
+        if head:
+            os.chdir(cwd)
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
@@ -317,7 +319,7 @@ def academy_validate(codename, timeout, checksum):
     Validate notebook hashes and grade
     """
     notebook_path = utils.find_exercise_nb(codename)
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     if checksum:
@@ -339,10 +341,12 @@ def academy_validate(codename, timeout, checksum):
             sys.exit(1)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout, allow_errors=False)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     if checksum:
         if not utils.is_valid(notebook, db_checksum):
@@ -414,14 +418,16 @@ def academy_execute(codename, timeout):
     Run
     """
     notebook_path = utils.find_exercise_nb(codename)
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     print("Grading notebook...")
     total_score, max_score = utils.grade(notebook)
@@ -439,14 +445,16 @@ def verify(codename, timeout):
     Validate notebook hashes and grade
     """
     notebook_path = utils.find_exercise_nb(codename)
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout, allow_errors=False)
-    os.chdir(cwd)
+    if head:
+        os.chdir(cwd)
 
     print("Clearing notebook...")
     utils.clear(notebook)
@@ -558,10 +566,12 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
             sys.exit(1)
 
         print("Executing notebook...")
-        cwd = os.getcwd()
-        os.chdir(head)
+        if head:
+            cwd = os.getcwd()
+            os.chdir(head)
         notebook = utils.execute(notebook, timeout)
-        os.chdir(cwd)
+        if head:
+            os.chdir(cwd)
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
@@ -625,44 +635,21 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
 # noinspection PyShadowingNames
 @portal.command('validate')
 @click.option('--notebook_path', type=str, required=True)
-@click.option('--checksum_url', type=str, required=True)
 @click.option('--timeout', type=int, default=None)
-@click.option('--token', type=str, required=True)
-def portal_validate(notebook_path, checksum_url, token, timeout):
+def portal_validate(notebook_path, timeout):
     """
     Validate notebook hashes and grade
     """
-    head, tail = os.path.split(notebook_path)
+    head, _ = os.path.split(notebook_path)
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
 
-    if checksum:
-        print("Fetching checksum...")
-        response = requests.get(
-            checksum_url,
-            headers={'Authorization': f"Token {token}"},
-        )
-        try:
-            response.raise_for_status()
-        except HTTPError:
-            print(response.content)
-            raise
-        db_checksum = response.json()['checksum']
-
-        print("Validating notebook...")
-        if not utils.is_valid(notebook, db_checksum):
-            print("Checksum mismatch! (a)")
-            sys.exit(1)
-
     print("Executing notebook...")
-    cwd = os.getcwd()
-    os.chdir(head)
+    if head:
+        cwd = os.getcwd()
+        os.chdir(head)
     notebook = utils.execute(notebook, timeout, allow_errors=False)
-    os.chdir(cwd)
-
-    if checksum:
-        if not utils.is_valid(notebook, db_checksum):
-            print("Checksum mismatch! (b)")
-            sys.exit(1)
+    if head:
+        os.chdir(cwd)
 
     print("Grading notebook...")
     total_score, max_score = utils.grade(notebook)
