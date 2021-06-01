@@ -1,0 +1,14 @@
+pip
+bumpversion
+wheel
+watchdog
+flake8
+tox
+coverage
+Sphinx
+twine
+black
+pip-tools
+
+pytest
+pytest-runner
