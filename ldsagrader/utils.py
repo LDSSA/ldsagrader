@@ -65,14 +65,17 @@ def execute(notebook, timeout=None, allow_errors=True):
     return nbformat.reads(notebook, as_version=nbformat.NO_CONVERT)
 
 
-def clear(notebook):
+def clear(notebook, allow_hidden_tests=False):
     c = Config()
     c.NotebookExporter.preprocessors = [
         "nbconvert.preprocessors.ClearOutputPreprocessor",
         "nbgrader.preprocessors.ClearSolutions",
         "nbgrader.preprocessors.LockCells",
-        "ldsagrader.preprocessors.ForbidHiddenTests",
     ]
+    if not allow_hidden_tests:
+        c.NotebookExporter.preprocessors.append(
+            "ldsagrader.preprocessors.ForbidHiddenTests")
+
     exporter = nbconvert.NotebookExporter(config=c)
     notebook, _ = exporter.from_notebook_node(notebook)
 

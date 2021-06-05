@@ -153,14 +153,15 @@ def notebook_execute(notebook, timeout, output):
 @notebook.command("clear")
 @click.argument("notebook", type=click.Path(exists=True))
 @click.option("--output", type=str)
-def notebook_clear(notebook, output):
+@click.option("--allow-hidden-tests", type=bool, default=False)
+def notebook_clear(notebook, output, allow_hidden_tests):
     """
     Create student version of notebook
     """
     notebook_path = notebook
     notebook = nbformat.read(notebook_path, as_version=nbformat.NO_CONVERT)
     print("Clearing notebook...")
-    notebook = utils.clear(notebook)
+    notebook = utils.clear(notebook, allow_hidden_tests)
     print("Writing notebook...")
     if output:
         notebook_path = output
@@ -629,7 +630,8 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
 @portal.command("validate")
 @click.option("--notebook_path", type=str, required=True)
 @click.option("--timeout", type=int, default=None)
-def portal_validate(notebook_path, timeout):
+@click.option("--allow-hidden-tests", type=bool, default=False)
+def portal_validate(notebook_path, timeout, allow_hidden_tests):
     """
     Validate notebook hashes and grade
     """
@@ -657,7 +659,7 @@ def portal_validate(notebook_path, timeout):
         sys.exit(1)
 
     print("Clearing notebook...")
-    utils.clear(notebook)
+    utils.clear(notebook, allow_hidden_tests)
 
     print("Notebook OK")
 
