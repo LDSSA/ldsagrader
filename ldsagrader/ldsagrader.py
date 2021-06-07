@@ -524,7 +524,7 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
 
         # Mark as grading
         print("Mark as grading...")
-        response = requests.put(
+        response = requests.patch(
             grading_url,
             headers={"Authorization": f"Token {token}"},
             json={
@@ -543,7 +543,7 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
         print("Validating notebook...")
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (a)")
-            response = requests.put(
+            response = requests.patch(
                 grading_url,
                 headers={"Authorization": f"Token {token}"},
                 json={
@@ -570,7 +570,7 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
 
         if not utils.is_valid(notebook, checksum):
             print("Checksum mismatch! (b)")
-            response = requests.put(
+            response = requests.patch(
                 grading_url,
                 headers={"Authorization": f"Token {token}"},
                 json={
@@ -595,7 +595,7 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
         fp = io.StringIO()
         nbformat.write(notebook, fp)
         fp.seek(0)
-        response = requests.put(
+        response = requests.patch(
             grading_url,
             headers={"Authorization": f"Token {token}"},
             data={
@@ -612,7 +612,7 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
             raise
 
     except Exception as exc:
-        response = requests.put(
+        response = requests.patch(
             grading_url,
             headers={"Authorization": f"Token {token}"},
             json={
