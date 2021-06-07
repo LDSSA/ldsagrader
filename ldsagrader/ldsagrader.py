@@ -529,9 +529,6 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
             headers={"Authorization": f"Token {token}"},
             json={
                 "status": "grading",
-                "score": None,
-                "notebook": None,
-                "message": "",
             },
         )
         try:
@@ -548,9 +545,6 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
                 headers={"Authorization": f"Token {token}"},
                 json={
                     "status": "checksum-failed",
-                    "score": None,
-                    "notebook": None,
-                    "message": "",
                 },
             )
             try:
@@ -575,9 +569,6 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
                 headers={"Authorization": f"Token {token}"},
                 json={
                     "status": "checksum-failed",
-                    "score": None,
-                    "notebook": None,
-                    "message": "",
                 },
             )
             try:
@@ -601,7 +592,6 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
             data={
                 "status": "graded",
                 "score": total_score,
-                "message": "",
             },
             files={"notebook": ("notebook.ipynb", fp, "application/x-ipynb+json")},
         )
@@ -617,8 +607,6 @@ def portal_grade(notebook_path, grading_url, checksum_url, token=None, timeout=N
             headers={"Authorization": f"Token {token}"},
             json={
                 "status": "failed",
-                "score": None,
-                "notebook": None,
                 "message": f"Unhandled exception {str(exc)}",
             },
         )
