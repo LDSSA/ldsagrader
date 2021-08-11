@@ -464,7 +464,7 @@ def hackathon():
 # noinspection PyShadowingNames
 @hackathon.command("update")
 @click.option("--codename", type=str, required=True)
-@click.option("--hackthon_url", type=str, required=True)
+@click.option("--hackathon_url", type=str, required=True)
 def hackathon_update(codename, hackathon_url):
     """
     Update hackathon script and data
