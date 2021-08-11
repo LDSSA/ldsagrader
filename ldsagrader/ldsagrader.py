@@ -464,7 +464,8 @@ def hackathon():
 # noinspection PyShadowingNames
 @hackathon.command("update")
 @click.option("--codename", type=str, required=True)
-def hackathon_update(codename):
+@click.option("--hackthon_url", type=str, required=True)
+def hackathon_update(codename, hackathon_url):
     """
     Update hackathon script and data
     """
@@ -478,7 +479,7 @@ def hackathon_update(codename):
         "data_file": open(data_file, "rb"),
     }
     response = requests.put(
-        config["hackathon_url"].format(codename=codename),
+        hackathon_url,
         headers={"Authorization": f"Token {config['token']}"},
         files=files,
     )
