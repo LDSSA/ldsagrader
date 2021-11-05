@@ -15,6 +15,7 @@ requirements = [
     "Click",
     "nbgrader",
     "requests",
+    "jupyter_client==6.1.12"
 ]
 
 setup_requirements = [
