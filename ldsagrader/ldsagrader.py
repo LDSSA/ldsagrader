@@ -1,6 +1,7 @@
 import io
 import os
 import sys
+from typing import Dict
 
 import click
 import nbformat
@@ -106,15 +107,15 @@ def notebook_validate(notebook, checksum, timeout):
 # noinspection PyShadowingNames
 @notebook.command("grade")
 @click.argument("notebook", type=click.Path(exists=True))
-@click.option("--checksum", required=True, type=click.Path(exists=True))
+@click.option("--checksum", type=click.Path(exists=True))
 @click.option("--timeout", type=int, default=None)
-def notebook_grade(notebook, checksum, timeout):
+def notebook_grade(notebook, checksum, timeout) -> Dict[str, float]:
     """
     Grade notebook running validations
     """
     notebook = nbformat.read(notebook, as_version=nbformat.NO_CONVERT)
 
-    if not utils.is_valid(notebook, checksum):
+    if checksum and not utils.is_valid(notebook, checksum):
         print("Checksum mismatch! (a)")
         sys.exit(1)
 
@@ -122,12 +123,14 @@ def notebook_grade(notebook, checksum, timeout):
     notebook = utils.execute(notebook, timeout)
 
     print("Grading notebook...")
-    if not utils.is_valid(notebook, checksum):
+    if checksum and not utils.is_valid(notebook, checksum):
         print("Checksum mismatch! (b)")
         sys.exit(1)
 
     total_score, max_score = utils.grade(notebook)
     print(f"Score: {total_score}/{max_score}")
+
+    return {'total_score': total_score, 'max_score': max_score}
 
 
 # noinspection PyShadowingNames

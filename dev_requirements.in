@@ -9,6 +9,7 @@ Sphinx
 twine
 black
 pip-tools
+jupyter_client==6.1.12
 
 pytest
 pytest-runner
