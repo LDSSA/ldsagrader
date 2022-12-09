@@ -22,7 +22,7 @@ bump2version==1.0.1
     # via bumpversion
 bumpversion==0.6.0
     # via -r dev_requirements.in
-certifi==2021.5.30
+certifi==2022.12.7
     # via requests
 cffi==1.14.5
     # via cryptography
@@ -108,9 +108,9 @@ pygments==2.9.0
     #   sphinx
 pyparsing==2.4.7
     # via packaging
-pytest-runner==5.3.1
-    # via -r dev_requirements.in
 pytest==6.2.4
+    # via -r dev_requirements.in
+pytest-runner==5.3.1
     # via -r dev_requirements.in
 pytz==2021.1
     # via babel
@@ -118,13 +118,13 @@ readme-renderer==29.0
     # via twine
 regex==2021.4.4
     # via black
-requests-toolbelt==0.9.1
-    # via twine
 requests==2.25.1
     # via
     #   requests-toolbelt
     #   sphinx
     #   twine
+requests-toolbelt==0.9.1
+    # via twine
 rfc3986==1.5.0
     # via twine
 secretstorage==3.3.1
